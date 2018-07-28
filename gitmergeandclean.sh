@@ -38,3 +38,22 @@ if [ $? -ne 0 ]; then
 fi
 # delete local branch
 git branch -d $BRANCH
+#
+# Get the latest commit HASH
+#
+COMMITHASH=$(git rev-parse HEAD)
+#
+# Get the GIT URL from pom file:
+# TODO: Can we do some sanity checks? Yes: scm:git:..  if not FAIL!
+echo -n "Get the git url from pom file..."
+GITURL=$(mvn help:evaluate -Dexpression=project.scm.connection -q -DforceStdout | cut -d":" -f3-)
+echo " URL: $GITURL"
+GITPROJECT=$(basename $GITURL)
+GITBASE=$(dirname $GITURL)
+#
+echo "Closing JIRA issue $BRANCH"
+jira-cli close -m"Done in [$COMMITHASH|$GITBASE?p=$GITPROJECT;a=commitdiff;h=$COMMITHASH]" --resolution=Done $BRANCH
+## Error handling?
+echo "Closing finished."
+#
+
